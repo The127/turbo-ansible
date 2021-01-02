@@ -1,0 +1,5 @@
+---
+# file: roles/aws/tasks/load_inventory.yml
+
+- name: load created ec2 instances into inventory
+  meta: refresh_inventory

@@ -1,0 +1,6 @@
+---
+# file: roles/vm_common/vars/main.yml
+
+packages:
+- amazon-linux-extras
+- curl

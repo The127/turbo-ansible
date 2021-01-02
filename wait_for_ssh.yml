@@ -1,0 +1,10 @@
+---
+# file: wait_for_ssh.yml
+
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: wait for ssh to be available
+      wait_for: host="{{ item }}" port=22 delay=0 timeout=300
+      with_items: "{{ groups['all'] }}"

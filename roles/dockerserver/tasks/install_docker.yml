@@ -1,0 +1,27 @@
+---
+# file: roles/dockerserver/tasks/install_docker.yml
+
+- name: check if docker is installed
+  stat:
+    path: /etc/flags/docker-installed
+  register: docker_installed_result
+
+- name: install docker
+  shell: "sudo amazon-linux-extras install docker -y"
+  when: not docker_installed_result.stat.exists
+
+- name: set docker exists flag file
+  copy:
+    content: ""
+    dest: /etc/flags/docker-installed
+    force: no
+    group: sys
+    owner: root
+    mode: 0555
+  when: not docker_installed_result.stat.exists
+
+- name: auto start docker service
+  systemd:
+    state: started
+    enabled: yes
+    name: docker

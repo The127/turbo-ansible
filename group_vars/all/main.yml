@@ -1,0 +1,4 @@
+---
+# file: group_vars/all/main.yml
+
+domain: the127.de

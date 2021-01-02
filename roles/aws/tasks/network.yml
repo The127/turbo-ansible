@@ -1,0 +1,50 @@
+---
+# file: roles/aws/tasks/network.yml
+
+- name: create vpc
+  ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    region: "{{ region }}"
+    state: present
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+  register: vpc_result
+
+- name: create dmz subnet
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpc_result.vpc.id }}"
+    region: "{{ region }}"
+    cidr: "{{ subnet_dmz_cidr }}"
+    map_public: yes
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    tags:
+      Name: "{{ subnet_dmz_name }}"
+  register: subnet_dmz_result
+
+- name: create dmz internet gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc_result.vpc.id }}"
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    state: present
+    tags:
+      Name: "{{ igw_name }}"
+  register: igw_result
+
+- name: route igw
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_result.vpc.id }}"
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    subnets:
+      - "{{ subnet_dmz_result.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw_result.gateway_id }}"
+    tags:
+      Name: "{{ igw_route_name }}"

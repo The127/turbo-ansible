@@ -1,0 +1,9 @@
+---
+# file: create_aws_infra.yml
+
+- hosts: "localhost"
+  connection: local
+  gather_facts: false
+
+  roles:
+  - aws

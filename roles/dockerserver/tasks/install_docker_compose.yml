@@ -1,0 +1,15 @@
+---
+# file: roles/dockerserver/tasks/install_docker_compose.yml
+
+- name: check if docker compose is installed
+  stat:
+    path: /usr/bin/docker-compose
+  register: docker_compose_installed_result
+
+- name: install docker compose
+  shell: "curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose"
+  when: not docker_compose_installed_result.stat.exists
+
+- name: make docker compose executable
+  shell: "chmod +x /usr/bin/docker-compose"
+  when: not docker_compose_installed_result.stat.exists

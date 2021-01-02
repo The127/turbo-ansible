@@ -1,0 +1,5 @@
+---
+# file: roles/aws/dockerserver/tasks.yml
+
+- include_tasks: install_docker.yml
+- include_tasks: install_docker_compose.yml

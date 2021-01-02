@@ -1,0 +1,6 @@
+---
+# file: roles/aws/tasks/main.yml
+
+- include_tasks: network.yml
+- include_tasks: vms.yml
+- include_tasks: load_inventory.yml

@@ -1,0 +1,19 @@
+---
+# file: roles/aws/vars/main.yml
+
+region: "eu-west-2"
+
+vpc_name: turbo-vpc
+vpc_cidr: 10.10.0.0/16
+
+subnet_dmz_name: turbo-dmz
+subnet_dmz_cidr: 10.10.1.0/24
+
+#internet gateway
+igw_name: turbo-igw
+igw_route_name: dmz-igw-route
+
+keypair_name: id_rsa
+
+docker_ip: 18.130.62.155
+db_ip: 18.135.47.71

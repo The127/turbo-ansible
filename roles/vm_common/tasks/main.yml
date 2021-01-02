@@ -1,0 +1,37 @@
+---
+# file: roles/vm_common/tasks/main.yml
+
+- name: update yum
+  yum: 
+    name: '*'
+    state: latest
+
+- name: install base requirements
+  yum:
+    name: "{{ packages }}"
+
+- name: Create a directory if it does not exist
+  file:
+    path: /etc/flags
+    state: directory
+    mode: '0755'
+
+# enable amazon extras
+- name: check if extras are enabled
+  stat: 
+    path: /etc/flags/amazon-extras-enabled
+  register: amazon_extras_enabled_result
+
+- name: Add extras repository
+  shell: yum-config-manager --enable extras
+  when: not amazon_extras_enabled_result.stat.exists
+
+- name: set extras enabled flag file if not enabled
+  copy:
+    content: ""
+    dest: /etc/flags/amazon-extras-enabled
+    force: no
+    group: sys
+    owner: root
+    mode: 0555
+  when: not amazon_extras_enabled_result.stat.exists

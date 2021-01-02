@@ -1,0 +1,158 @@
+---
+# file: roles/aws/tasks/vms.yml
+
+- name: ensure key pair exists (based on local id_rsa)
+  ec2_key:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    name: "{{ keypair_name }}"
+    region: "{{ region }}"
+    state: present
+    key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  register: keypair_result
+
+- name: create security group
+  ec2_group:
+    name: docker dmz
+    description: dmz security group for web servers
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_result.vpc.id }}"
+    rules:
+    - proto: tcp
+      ports:
+      - 80
+      - 443
+      cidr_ip: 0.0.0.0/0
+      rule_desc: http access
+    - proto: tcp
+      ports:
+      - 22
+      cidr_ip: 0.0.0.0/0
+      rule_desc: ssh admin access
+  register: docker_group_result
+
+- name: create dmz docker/web server
+  ec2:
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    wait: yes
+    image: ami-0e80a462ede03e653
+    vpc_subnet_id: "{{ subnet_dmz_result.subnet.id }}"
+    key_name: "{{ keypair_result.key.name  }}"
+    instance_initiated_shutdown_behavior: stop
+    monitoring: no
+    assign_public_ip: no
+    instance_type: t3a.medium
+    ebs_optimized: yes
+    group_id: "{{ docker_group_result.group_id }}"
+    volumes:
+      - device_name: /dev/xvda
+        volume_type: gp2
+        volume_size: 100
+    instance_tags:
+      Name: turbo-docker
+    count_tag:
+      Name: turbo-docker
+    exact_count: 1
+  register: docker_result
+
+- name: associate elastic ip with docker server
+  ec2_eip:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ region }}"
+    device_id: "{{ item.id }}"
+    ip: "{{ docker_ip }}"
+  with_items: "{{ docker_result.tagged_instances }}"
+  when: not item.public_ip
+
+- name: ensure dns entry for docker server exists
+  route53:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    state: present
+    zone: "{{ domain }}"
+    record: "docker.{{ domain }}"
+    type: A
+    ttl: 300
+    value: "{{ docker_ip }}"
+    wait: no
+
+- name: ensure wildcard dns entry for docker services exists
+  route53:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    state: present
+    zone: "{{ domain }}"
+    record: "*.docker.{{ domain }}"
+    type: A
+    ttl: 300
+    value: "{{ docker_ip }}"
+    wait: no
+
+- name: create security group for databases
+  ec2_group:
+    name: database dmz
+    description: dmz security group for database servers
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_result.vpc.id }}"
+    rules:
+    - proto: tcp
+      ports:
+      - 22
+      cidr_ip: 0.0.0.0/0
+      rule_desc: ssh admin access
+  register: db_group_result
+
+- name: create dmz db server
+  ec2:
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    wait: yes
+    image: ami-0e80a462ede03e653
+    vpc_subnet_id: "{{ subnet_dmz_result.subnet.id }}"
+    key_name: "{{ keypair_result.key.name  }}"
+    instance_initiated_shutdown_behavior: stop
+    monitoring: no
+    assign_public_ip: no
+    instance_type: t3a.medium
+    ebs_optimized: yes
+    group_id: "{{ db_group_result.group_id }}"
+    volumes:
+      - device_name: /dev/xvda
+        volume_type: gp2
+        volume_size: 200
+    instance_tags:
+      Name: turbo-db
+    count_tag:
+      Name: turbo-db
+    exact_count: 1
+  register: db_result
+
+- name: associate elastic ip with db server
+  ec2_eip:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    region: "{{ region }}"
+    device_id: "{{ item.id }}"
+    ip: "{{ db_ip }}"
+  with_items: "{{ db_result.tagged_instances }}"
+  when: not item.public_ip
+
+- name: ensure dns entry for db server exists
+  route53:
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    state: present
+    zone: "{{ domain }}"
+    record: "db.{{ domain }}"
+    type: A
+    ttl: 300
+    value: "{{ db_ip }}"
+    wait: no
