@@ -1,6 +1,14 @@
 ---
 # file: roles/dockerserver/tasks/install_docker.yml
 
+- name: install ansible requirement docker
+  pip:
+    name: docker
+
+- name: install ansible requirements docker-compose
+  pip:
+    name: docker-compose~=1.23.0
+
 - name: check if docker is installed
   stat:
     path: /etc/flags/docker-installed
@@ -25,3 +33,9 @@
     state: started
     enabled: yes
     name: docker
+
+- name: create daemon json
+  copy:
+    dest: /etc/docker/daemon.json
+    src: files/daemon.json
+  notify: restart docker

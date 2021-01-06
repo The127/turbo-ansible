@@ -1,0 +1,17 @@
+---
+# file: roles/dockerserver/tasks/setup_keycloak.yml
+
+- name: copy keycloak directory
+  copy:
+    src: files/keycloak/
+    dest: keycloak/
+
+- name: copy keycloak docker compose
+  template:
+    src: templates/keycloak-docker-compose.yml
+    dest: keycloak/docker-compose.yml
+
+- name: start keykloack docker compose
+  community.general.docker_compose:
+    project_src: keycloak
+    state: present

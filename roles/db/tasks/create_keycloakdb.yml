@@ -1,0 +1,23 @@
+---
+# file: roles/db/tasks/create_keycloakdb.yml
+
+- name: create keycloak user
+  community.general.postgresql_user:
+    name: "{{ keycloak_db_user }}"
+    password: "{{ keycloak_db_user_pw }}"
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: create keycloak database
+  community.general.postgresql_db:
+    name: "{{ keycloak_db }}"
+  become: yes
+  become_user: postgres
+    
+- name: set ownership of database
+  community.general.postgresql_owner:
+    db: "{{ keycloak_db }}"
+    new_owner: "{{ keycloak_db_user }}"
+  become: yes
+  become_user: postgres

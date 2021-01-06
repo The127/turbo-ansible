@@ -3,3 +3,5 @@
 
 - include_tasks: install_docker.yml
 - include_tasks: install_docker_compose.yml
+- include_tasks: setup_traefik.yml
+- include_tasks: setup_keycloak.yml

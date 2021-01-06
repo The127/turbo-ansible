@@ -4,3 +4,4 @@
 packages:
 - amazon-linux-extras
 - curl
+- python-pip

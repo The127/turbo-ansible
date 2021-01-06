@@ -1,0 +1,16 @@
+---
+# file: roles/dockerserver/tasks/setup_traefik.yml
+
+- name: create traefik network
+  docker_network:
+    name: traefik
+
+- name: copy traefik compose folder
+  copy:
+    src: files/traefik/
+    dest: traefik/
+
+- name: run compose up
+  community.general.docker_compose:
+    project_src: traefik
+    state: present

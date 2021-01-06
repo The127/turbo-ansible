@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+    - DB_VENDOR=POSTGRES
+    - DB_ADDR=db.the127.de
+    - DB_DATABASE={{ keycloak_db }}
+    - DB_USER={{ keycloak_db_user }}
+    networks:
+    - traefik
+    labels:
+    - traefik.entable=true
+    - traefik.network=traefik
+
+networks:
+  traefik:
+    external: true

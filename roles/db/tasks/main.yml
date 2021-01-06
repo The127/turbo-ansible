@@ -2,3 +2,4 @@
 # file: roles/db/tasks/main.yml
 
 - include_tasks: install_postgres.yml
+- include_tasks: create_keycloakdb.yml

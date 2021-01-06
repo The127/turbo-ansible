@@ -5,19 +5,15 @@
   copy:
     dest: /etc/yum.repos.d/pgdg.repo
     src: files/pgdg.repo
-
-- name: yum install postgres
-  yum:
-    name: 
-    - postgresql12
-    - postgresql12-server
-    state: latest
+  
+- name: install psycopg2
+  pip:
+    name: psycopg2-binary
 
 - name: check if database is initialized
   stat:
     path: /etc/flags/pg-intialized
   register: pg_initialized_result
-  
 
 - name: ensure database is initialized
   command: /usr/pgsql-12/bin/postgresql-12-setup initdb

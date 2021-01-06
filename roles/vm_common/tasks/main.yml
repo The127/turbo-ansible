@@ -35,3 +35,8 @@
     owner: root
     mode: 0555
   when: not amazon_extras_enabled_result.stat.exists
+
+- name: update pip
+  pip:
+    name: pip
+    state: latest

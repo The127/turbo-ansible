@@ -2,3 +2,6 @@
 # file: group_vars/all/main.yml
 
 domain: the127.de
+
+keycloak_db: keycloak
+keycloak_db_user: dbtu_keycloak
